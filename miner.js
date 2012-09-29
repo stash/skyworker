@@ -219,7 +219,7 @@ function is_golden_hash(hash, target)
 ///// Web Worker /////
 
 onmessage = function(event) {
-	var startTime, 
+	var startTime,
 			endTime,
 			block = event.data.block,
 			hashCounter = event.data.hashCounter,
