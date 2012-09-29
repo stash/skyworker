@@ -131,6 +131,12 @@ io.sockets.on('connection', function (socket) {
 
     sendJobToClient(socket, message.clientID);
   });
+
+  socket.on('nameChange', function(message)
+  {
+    resultsPerClient[clientNum].name = message.clientName;
+    process.nextTick(broadcastUpdate);
+  });
 });
 
 function sendJobToClient(socket, clientNum)
@@ -169,24 +175,33 @@ function recordResult(clientNum, time) {
   cli.last = Date.now();
   cli.times.push(time);
 
-  var len = cli.times.length;
-  var sum = cli.times.reduce(function(a,b) { return a + b; }, 0);
-  cli.avg = sum/len;
+  var numberOfJobs = cli.times.length;
+  var totalTime = cli.times.reduce(function(a,b) { return a + b; }, 0);
+  cli.averageTime = totalTime/numberOfJobs;
+  cli.totalTime = totalTime;
 
   broadcastUpdate();
 }
 
 function broadcastUpdate() {
-
+  var totals = {
+    numberOfJobs: 0,
+    totalTime: 0
+  };
   var update = Object.keys(resultsPerClient).map(function(clientNum) {
     var cli = resultsPerClient[clientNum];
+    totals.numberOfJobs += cli.times.length;
+    totals.totalTime += cli.totalTime;
     return cli;
   }).sort(function(a,b) {
-    return b.avg - a.avg;
+    return b.averageTime - a.averageTime;
   });
 
+  totals.averageTime = totals.totalTime / totals.numberOfJobs / 1000;
+  totals.perSecond = totals.numberOfJobs / totals.totalTime * 1000 * 65535;
+
   mains.forEach(function(socket) {
-    socket.emit('updateDisplay',{order:update});
+    socket.emit('updateDisplay',{order:update, totals:totals});
   });
 }
 

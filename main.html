@@ -40,7 +40,9 @@
   <div id="hudwrapper">
     <p>Current Status:</p>
     <div id="hud">
-      
+      <p>Total Jobs: <span id="total-jobs"></span></p>
+      <p>Average Time per Job: <span id="average"></span></p>
+      <p>Hashes Per second: <span id="per-second"></span></p>
     </div>
   </div>
   
@@ -49,6 +51,11 @@
 
 var ordering = [];
 var incr = 40;
+var totals = {
+  total: 0,
+  average: 0,
+  perSecond: 0
+};
 function redraw() {
   var $parent = $('#leaderboard');
   var offset = $parent.offset();
@@ -70,6 +77,10 @@ function redraw() {
       curY += incr;
     }
   });
+
+  $('#total-jobs').text(totals.numberOfJobs);
+  $('#average').text(totals.averageTime);
+  $('#per-second').text(totals.perSecond);
 }
 
 window.$ = jQuery;
@@ -86,6 +97,8 @@ $(function() {
 
   socket.on('updateDisplay', function(msg) {
     ordering = msg.order;
+    totals = msg.totals;
+    console.log(msg);
     redraw();
   });
 });
