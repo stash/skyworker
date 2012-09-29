@@ -4,4 +4,10 @@
 //   }(workUnit.data))
 // };
 
-return data * data;
+var start = new Date().getTime();
+for (var i=0; i<10000000; i++) {
+  data *= data;
+}
+var end = new Date().getTime();
+
+return {num:data, time: end-start};
