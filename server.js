@@ -38,7 +38,7 @@ io.disable('match origin protocol');
 
 var clientCounter = 0;
 
-var clientFunction = fs.readFileSync(__dirname+'/function.js');
+var clientFunction = fs.readFileSync(__dirname+'/function.js', 'utf8');
 
 io.sockets.on('connection', function (socket) {
   var clientNum = ++clientCounter;
