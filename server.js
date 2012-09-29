@@ -138,6 +138,7 @@ function sendJobToClient(socket, clientNum)
 
 function recordResult(clientNum, time) {
   var cli = resultsPerClient[clientNum];
+  if (!cli) return;
 
   cli.last = Date.now();
   cli.times.push(time);
