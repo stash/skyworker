@@ -3,21 +3,32 @@ function say(msg)
 	worker.postMessage({'msg': msg});
 }
 
-var blob = new Blob(["onmessage = function(e) { postMessage(\"back from the worker: \" + e.data.msg); };"]);
-var windowURL = window.URL || window.webkitURL;
-// Obtain a blob URL reference to our worker 'file'.
-var blobURL = windowURL.createObjectURL(blob);
-
-var worker = new Worker(blobURL);
 var socket = io.connect('http://localhost:8123');
+var blob,
+	clientID,
+	windowURL = window.URL || window.webkitURL,
+	blobURL,
+	worker,
+	jobNumber;
 
-worker.onmessage = function(e) {
-  socket.emit('my other event', { data: e.data });
-};
+socket.on('load', function (message)
+{
+	clientID = message.num;
+	blob = new Blob(["onmessage = function(workUnit) { postMessage(function(data) { \n" + message.source + "\n }(workUnit.data)); } "]);
+	// Obtain a blob URL reference to our worker 'file'.
+	blobURL = windowURL.createObjectURL(blob);
+	worker = new Worker(blobURL);
 
-socket.on('news', function (data) {
-	console.log(data);
-  worker.postMessage(data);
+	worker.onmessage = function(e) {
+		console.log("job result: " + e.data);
+	 	socket.emit('jobResult', { jobNum: jobNumber, result: e.data });
+	};
+
+	socket.emit('ready', { num: message.num });
 });
 
-worker.postMessage({'msg': 'worker started'});
+socket.on('job', function (message) {
+	console.log("new job: " + message);
+	jobNumber = message.jobNum;
+  worker.postMessage(message.jobData);
+});
