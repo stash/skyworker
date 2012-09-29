@@ -3,8 +3,8 @@
   "version": "0.0.0",
   "description": "SkyWorker",
   "dependencies": {
-      "socket.io":"",
-      "socket.io-client":""
+    "socket.io": "",
+    "socket.io-client": ""
   },
   "devDependencies": {},
   "scripts": {
@@ -16,5 +16,9 @@
     "url": "git://github.com/stash/skyworker.git"
   },
   "author": "",
-  "license": "MIT"
+  "license": "MIT",
+  "subdomain": "stash.skyworker",
+  "engines": {
+    "node": "0.8.x"
+  }
 }
