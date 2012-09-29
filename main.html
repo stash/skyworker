@@ -27,44 +27,47 @@
 
 <script type="application/javascript">
 
-var socket = io.connect('http://' + window.location.host);
-var ordering = [
-  'one', 'two', 'three', 'four', 'five'
-];
-
-function reorder() {
-  ordering = ordering.slice(2).concat(ordering.slice(0,2));
-}
-
+var ordering = [];
 var incr = 40;
 function redraw() {
   var $parent = $('#leaderboard');
   var offset = $parent.offset();
   var curY = 0;
-  ordering.forEach(function(item) {
-    var $div = $('#client-'+item);
-    $div.animate({ top: offset.top + curY }, 333, 'swing');
-    curY += incr;
+  ordering.forEach(function(cli) {
+    var $div = $('#client-'+cli.clientNum);
+
+    if (!$div.length) {
+      $div = $('<div id="client-'+cli.clientNum+'" class="client">'+cli.name+'</client>');
+      $parent.append($div);
+    } else {
+      $div.text(cli.name);
+    }
+
+    if (cli.hidden) {
+      $div.fadeOut('fast',function() { $div.remove() });
+    } else {
+      $div.animate({ top: offset.top + curY }, 333, 'swing');
+      curY += incr;
+    }
   });
 }
-
-socket.on('load', function(msg) {
-});
 
 window.$ = jQuery;
 $(function() {
 
-  setInterval(function() {
-    reorder();
-    redraw();
-  },2000);
-
-  ordering.forEach(function(item) {
-    var $div = $('<div id="client-'+item+'" class="client">'+item+'</client>');
-    $('#leaderboard').append($div);
+  var socket = io.connect('http://' + window.location.host);
+  socket.on('updateDisplay', function(msg) {
+    console.log('got', msg);
   });
 
-  redraw();
+  socket.on('load', function(msg) {
+    socket.emit('ready',{role:'main'});
+  });
+
+  socket.on('updateDisplay', function(msg) {
+    ordering = msg.order;
+    redraw();
+  });
 });
 </script>
 </body>

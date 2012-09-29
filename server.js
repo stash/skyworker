@@ -92,12 +92,22 @@ job.data = job.data.slice(16);
 
 var clientFunction = fs.readFileSync(__dirname+'/function.js', 'utf8');
 
+var resultsPerClient = {};
+var mains = [];
+
 io.sockets.on('connection', function (socket) {
   var clientNum = ++clientCounter;
   console.log('client number',clientNum,'started');
-  socket.emit('load', { clientID: clientNum, source: clientFunction, url: workerUrl });
+
+  socket.emit('load', { name: clientNum, clientID: clientNum, source: clientFunction, url: workerUrl });
 
   socket.on('ready', function (message) {
+    if (message.role === 'main') {
+      mains.push(socket);
+      return;
+    }
+
+    resultsPerClient[clientNum] = { name: clientNum, times: [], avg: 0, last: Date.now() };
     if (message.clientID != clientNum) throw new Error('something\'s wrong: client number ain\'t right');
 
     sendJobToClient(socket, clientNum);
@@ -105,6 +115,9 @@ io.sockets.on('connection', function (socket) {
 
   socket.on('jobResult', function(message) {
     console.log('ClientID: ', message.clientID, ' Completed job num ', message.jobNum);
+
+    var time = message.result.time;
+    process.nextTick(recordResult.bind(null, clientNum, time));
 
     sendJobToClient(socket, message.clientID);
   });
@@ -121,6 +134,30 @@ function sendJobToClient(socket, clientNum)
     socket.emit('job', {jobNum:jobNum, hashCounter:hashCounter, block: job});
     hashCounter = safe_add(hashCounter, 65535);
   }
+}
+
+function recordResult(clientNum, time) {
+  var cli = resultsPerClient[clientNum];
+
+  cli.last = Date.now();
+  cli.times.push(time);
+
+  var len = cli.times.length;
+  var sum = cli.times.reduce(function(a,b) { return a + b; }, 0);
+  cli.avg = sum/len;
+
+  var cutoff = Date.now() - 60*1000;
+  var update = Object.keys(resultsPerClient).map(function(clientNum) {
+    var cli = resultsPerClient[clientNum];
+    cli.hidden = (cli.last < cutoff);
+    return cli;
+  }).sort(function(a,b) {
+    return b.avg - a.avg;
+  });
+
+  mains.forEach(function(socket) {
+    socket.emit('updateDisplay',{order:update});
+  });
 }
 
 server.listen(8123);
