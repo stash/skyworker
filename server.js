@@ -95,26 +95,18 @@ var clientFunction = fs.readFileSync(__dirname+'/function.js', 'utf8');
 io.sockets.on('connection', function (socket) {
   var clientNum = ++clientCounter;
   console.log('client number',clientNum,'started');
-  socket.emit('load', { num: clientNum, source: clientFunction, url: workerUrl });
+  socket.emit('load', { clientID: clientNum, source: clientFunction, url: workerUrl });
 
   socket.on('ready', function (message) {
-    if (message.num != clientNum) throw new Error('something\'s wrong: client number ain\'t right');
+    if (message.clientID != clientNum) throw new Error('something\'s wrong: client number ain\'t right');
 
     sendJobToClient(socket, clientNum);
   });
 
   socket.on('jobResult', function(message) {
+    console.log('ClientID: ', message.clientID, ' Completed job num ', message.jobNum);
 
-    if(message.result.golden_ticket != undefined)
-    {
-      console.log('ClientID: ', message.Num, ' Completed job num ', message.jobNum);
-
-      sendJobToClient(socket, message.Num);
-    }
-    else
-    {
-      console.log(message);
-    }
+    sendJobToClient(socket, message.clientID);
   });
 });
 
@@ -126,7 +118,7 @@ function sendJobToClient(socket, clientNum)
     jobNum = ++jobCounter;
     console.log('sending job num', jobNum, ' to ', clientNum);
     console.log('hashCounter', hashCounter);
-    socket.emit('job', {jobNum:jobNum, jobData:hashCounter, block: job});
+    socket.emit('job', {jobNum:jobNum, hashCounter:hashCounter, block: job});
     hashCounter = safe_add(hashCounter, 65535);
   }
 }

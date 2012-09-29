@@ -13,7 +13,7 @@ var blob,
 
 socket.on('load', function (message)
 {
-	clientID = message.num;
+	clientID = message.clientID;
 	// blob = new Blob(["onmessage = function(workUnit) { postMessage(function(data) { \n" + message.source + "\n }(workUnit.data)); } "]);
 	// Obtain a blob URL reference to our worker 'file'.
 	// blobURL = windowURL.createObjectURL(blob);
@@ -21,10 +21,10 @@ socket.on('load', function (message)
 
 	worker.onmessage = function(e) {
 		console.log("job result: " + e.data.golden_ticket);
-		socket.emit('jobResult', { num: clientID, jobNum: jobNumber, result: e.data });
+		socket.emit('jobResult', { clientID: clientID, jobNum: jobNumber, result: e.data });
 	};
 
-	socket.emit('ready', { num: message.num });
+	socket.emit('ready', { clientID: message.clientID });
 });
 
 socket.on('job', function (message) {

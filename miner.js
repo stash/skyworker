@@ -167,7 +167,7 @@ function sha256_chunk(state, data)
 // target is 256-bits:		Array of 8, 32-bit numbers
 //
 // Returns a Golden Ticket (32-bit number) or false
-function scanhash(hashCounter, midstate, data, hash1, target, progress_report)
+function scanhash(hashCounter, midstate, data, hash1, target)
 {
 	// Nonce is a number which starts at 0 and increments until 0xFFFFFFFF
 	var nonce = hashCounter;
@@ -190,11 +190,6 @@ function scanhash(hashCounter, midstate, data, hash1, target, progress_report)
 			// The current nonce is thus a Golden Ticket
 			return nonce;
 		}
-
-
-		if (nonce % 10000 === 0)
-			progress_report();
-
 
 		// If this was the last possible nonce, quit
 		if (nonce == 0xFFFFFFFF)
@@ -224,28 +219,23 @@ function is_golden_hash(hash, target)
 ///// Web Worker /////
 
 onmessage = function(event) {
-	var job = event.data.block;
-	var hashCounter = event.data.jobData;
-	job.golden_ticket = false;
-
-	//sendProgressUpdate(job);
-
-	// Send occasional progress updates
-	//setInterval(function() { sendProgressUpdate(job); }, 10000);
+	var startTime, 
+			endTime,
+			block = event.data.block,
+			hashCounter = event.data.hashCounter,
+			job = {},
+			golden_ticket;
 	
-
+	job.golden_ticket = false;
+	
+	startTime = Date.now();
 	// Begin scanning
-	var golden_ticket = scanhash(hashCounter, job.midstate, job.data, job.hash1, job.target,
-			function() { sendProgressUpdate(job) });
+	golden_ticket = scanhash(hashCounter, block.midstate, block.data, block.hash1, block.target);
 
+	endTime = Date.now();
 	// Scanning compelted. Send back the results
+
 	job.golden_ticket = golden_ticket;
+	job.time = endTime - startTime;
 	postMessage(job);
 };
-
-function sendProgressUpdate(job)
-{
-	job.total_hashes = TotalHashes;
-
-	//postMessage(job);
-}
