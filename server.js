@@ -36,10 +36,24 @@ io.set('transports', ['websocket', 'xhr-polling', 'jsonp-polling']);
 io.set('io name', 'skyworker.io');
 io.disable('match origin protocol');
 
+var clientCounter = 0;
+
+var clientFunction = fs.readFileSync(__dirname+'/function.js');
+
 io.sockets.on('connection', function (socket) {
-  socket.emit('news', { msg: 'hello world' });
-  socket.on('my other event', function (data) {
-    console.log(data);
+  var clientNum = ++clientCounter;
+  console.log('client number',clientNum,'started');
+  socket.emit('load', { num: clientNum, source: clientFunction });
+
+  socket.on('ready', function (message) {
+    if (message.num != clientNum) throw new Error('something\'s wrong: client number ain\'t right');
+
+    console.log('sending job num', 9000);
+    socket.emit('job', {jobNum:9000, jobData:42});
+  });
+
+  socket.on('jobResult', function(message) {
+    console.log('got result:', message.result, 'for job num', message.jobNum);
   });
 });
 
