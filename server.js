@@ -96,7 +96,7 @@ var resultsPerClient = {};
 var mains = [];
 
 io.sockets.on('connection', function (socket) {
-  var clientNum = ++clientCounter;
+  var clientNum = socket.id;
   console.log('client number',clientNum,'started');
 
   socket.emit('load', { name: clientNum, clientID: clientNum, source: clientFunction, url: workerUrl });
@@ -107,8 +107,16 @@ io.sockets.on('connection', function (socket) {
       return;
     }
 
-    resultsPerClient[clientNum] = { clientNum: clientNum, name: clientNum, times: [], avg: 0, last: Date.now() };
-    if (message.clientID != clientNum) throw new Error('something\'s wrong: client number ain\'t right');
+    resultsPerClient[clientNum] = {
+      clientNum: clientNum,
+      name: clientNum,
+      times: [],
+      avg: 0,
+      timer: null,
+    };
+
+    if (message.clientID != clientNum)
+      throw new Error('something\'s wrong: client number ain\'t right');
 
     sendJobToClient(socket, clientNum);
   });
@@ -117,6 +125,7 @@ io.sockets.on('connection', function (socket) {
     console.log('ClientID: ', message.clientID, ' Completed job num ', message.jobNum);
 
     var time = message.result.time;
+    resetTimer(clientNum);
     process.nextTick(recordResult.bind(null, clientNum, time));
 
     sendJobToClient(socket, message.clientID);
@@ -136,6 +145,16 @@ function sendJobToClient(socket, clientNum)
   }
 }
 
+function resetTimer(clientNum) {
+  var cli = resultsPerClient[clientNum];
+  if (!cli) return;
+  if (cli.timer) clearTimeout(cli.timer);
+  cli.timer = setTimeout(function() {
+    cli.hidden = true;
+    broadcastUpdate();
+  });
+}
+
 function recordResult(clientNum, time) {
   var cli = resultsPerClient[clientNum];
   if (!cli) return;
@@ -147,10 +166,13 @@ function recordResult(clientNum, time) {
   var sum = cli.times.reduce(function(a,b) { return a + b; }, 0);
   cli.avg = sum/len;
 
-  var cutoff = Date.now() - 60*1000;
+  broadcastUpdate();
+}
+
+function broadcastUpdate() {
+
   var update = Object.keys(resultsPerClient).map(function(clientNum) {
     var cli = resultsPerClient[clientNum];
-    cli.hidden = (cli.last < cutoff);
     return cli;
   }).sort(function(a,b) {
     return b.avg - a.avg;
