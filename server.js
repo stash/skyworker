@@ -16,6 +16,8 @@ var server = http.createServer(function(req,res) {
   var url = req.url;
   if (url.match(/^\/(?:index\.html)?/)) {
     return sendFile('./index.html',req,res);
+  } else if (url.match(/^\/client.js/)) {
+    return sendFile('./client.js',req,res);
   }
 
   res.writeHead(200, {'content-type':'text/plain'});
