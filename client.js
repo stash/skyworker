@@ -14,21 +14,20 @@ var blob,
 socket.on('load', function (message)
 {
 	clientID = message.num;
-	blob = new Blob(["onmessage = function(workUnit) { postMessage(function(data) { \n" + message.source + "\n }(workUnit.data)); } "]);
+	// blob = new Blob(["onmessage = function(workUnit) { postMessage(function(data) { \n" + message.source + "\n }(workUnit.data)); } "]);
 	// Obtain a blob URL reference to our worker 'file'.
-	blobURL = windowURL.createObjectURL(blob);
-	worker = new Worker(blobURL);
+	// blobURL = windowURL.createObjectURL(blob);
+	worker = new Worker(message.url);
 
 	worker.onmessage = function(e) {
-		console.log("job result: " + e.data.time);
-		socket.emit('jobResult', { jobNum: jobNumber, result: e.data });
+		console.log("job result: " + e.data.golden_ticket);
+		socket.emit('jobResult', { num: clientID, jobNum: jobNumber, result: e.data });
 	};
 
 	socket.emit('ready', { num: message.num });
 });
 
 socket.on('job', function (message) {
-	console.log("new job: " + message.jobData);
 	jobNumber = message.jobNum;
-  worker.postMessage(message.jobData);
+  worker.postMessage(message);
 });
