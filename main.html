@@ -1,0 +1,71 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <title>Status - SkyWorker</title>
+  <script type="application/javascript" src="https://ajax.googleapis.com/ajax/libs/jquery/1.7.0/jquery.js"></script>
+  <script type="application/javascript" src="/socket.io/socket.io.js"></script>
+  <style type="text/css">
+    .client {
+      position: absolute;
+      font-size: 24px;
+      height: 32px;
+      width: 256px;
+      background: #888888;
+      border: 1px solid black;
+      font-family: Inconsolata,monospace;
+      text-align: center;
+      float: clear;
+    }
+  </style>
+</head>
+<body>
+
+  <p>Rank:</p>
+
+  <div id="leaderboard">
+  </div>
+
+<script type="application/javascript">
+
+var socket = io.connect('http://' + window.location.host);
+var ordering = [
+  'one', 'two', 'three', 'four', 'five'
+];
+
+function reorder() {
+  ordering = ordering.slice(2).concat(ordering.slice(0,2));
+}
+
+var incr = 40;
+function redraw() {
+  var $parent = $('#leaderboard');
+  var offset = $parent.offset();
+  var curY = 0;
+  ordering.forEach(function(item) {
+    var $div = $('#client-'+item);
+    $div.animate({ top: offset.top + curY }, 333, 'swing');
+    curY += incr;
+  });
+}
+
+socket.on('load', function(msg) {
+});
+
+window.$ = jQuery;
+$(function() {
+
+  setInterval(function() {
+    reorder();
+    redraw();
+  },2000);
+
+  ordering.forEach(function(item) {
+    var $div = $('<div id="client-'+item+'" class="client">'+item+'</client>');
+    $('#leaderboard').append($div);
+  });
+
+  redraw();
+});
+</script>
+</body>
+</html>
