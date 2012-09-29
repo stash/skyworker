@@ -107,7 +107,7 @@ io.sockets.on('connection', function (socket) {
       return;
     }
 
-    resultsPerClient[clientNum] = { name: clientNum, times: [], avg: 0, last: Date.now() };
+    resultsPerClient[clientNum] = { clientNum: clientNum, name: clientNum, times: [], avg: 0, last: Date.now() };
     if (message.clientID != clientNum) throw new Error('something\'s wrong: client number ain\'t right');
 
     sendJobToClient(socket, clientNum);
