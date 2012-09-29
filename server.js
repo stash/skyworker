@@ -7,7 +7,9 @@ var client = fs.readFileSync('./node_modules/socket.io-client/dist/socket.io.min
 
 function sendFile(filename,req,res) {
   fs.readFile(filename, function(err,buf) {
-    res.writeHead(200, {'content-type':'text/html', 'content-length':buf.length});
+    var ct = 'text/html';
+    if (filename.match(/\.js$/)) ct = 'application/javascript; charset=UTF-8';
+    res.writeHead(200, {'content-type':ct, 'content-length':buf.length});
     res.end(buf);
   });
 }
