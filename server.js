@@ -44,10 +44,12 @@ function hex_to_byte(hex)
 
 var server = http.createServer(function(req,res) {
   var url = req.url;
-  if (url.match(/^\/client.js/)) {
+  if (url.match(/^\/client\.js/)) {
     return sendFile('./client.js',req,res);
-  } else if (url.match(/^\/miner.js/)) {
+  } else if (url.match(/^\/miner\.js/)) {
     return sendFile('./miner.js',req,res);
+  } else if (url.match(/^\/main\.html/)) {
+    return sendFile('./main.html',req,res);
   } else if (url.match(/^\/(?:index\.html)?/)) {
     return sendFile('./index.html',req,res);
   }
