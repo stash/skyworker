@@ -31,3 +31,12 @@ socket.on('job', function (message) {
 	jobNumber = message.jobNum;
   worker.postMessage(message);
 });
+
+$(function()
+{
+	$('#setName').click(function(e)
+	{
+		e.preventDefault();
+		socket.emit('nameChange', {clientName: $('#clientName').val()});
+	});
+})
