@@ -3,7 +3,7 @@ function say(msg)
 	worker.postMessage({'msg': msg});
 }
 
-var socket = io.connect('http://localhost:8123');
+var socket = io.connect('http://' + window.location.host);
 var blob,
 	clientID,
 	windowURL = window.URL || window.webkitURL,
@@ -20,15 +20,15 @@ socket.on('load', function (message)
 	worker = new Worker(blobURL);
 
 	worker.onmessage = function(e) {
-		console.log("job result: " + e.data);
-	 	socket.emit('jobResult', { jobNum: jobNumber, result: e.data });
+		console.log("job result: " + e.data.time);
+		socket.emit('jobResult', { jobNum: jobNumber, result: e.data });
 	};
 
 	socket.emit('ready', { num: message.num });
 });
 
 socket.on('job', function (message) {
-	console.log("new job: " + message);
+	console.log("new job: " + message.jobData);
 	jobNumber = message.jobNum;
   worker.postMessage(message.jobData);
 });

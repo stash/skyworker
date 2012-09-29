@@ -5,9 +5,10 @@
 // };
 
 var start = new Date().getTime();
-for (var i=0; i<10000000; i++) {
-  data *= data;
+var x = data;
+for (var i=0; i<100000000; i++) {
+  x = (x * x) % 67108864;
 }
 var end = new Date().getTime();
 
-return {num:data, time: end-start};
+return {num:x, data: data, time: end-start};
