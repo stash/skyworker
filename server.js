@@ -93,6 +93,7 @@ job.data = job.data.slice(16);
 var clientFunction = fs.readFileSync(__dirname+'/function.js', 'utf8');
 
 var resultsPerClient = {};
+var clientTimeouts = {};
 var mains = [];
 
 io.sockets.on('connection', function (socket) {
@@ -112,7 +113,7 @@ io.sockets.on('connection', function (socket) {
       name: clientNum,
       times: [],
       avg: 0,
-      timer: null,
+      hidden: false,
     };
 
     if (message.clientID != clientNum)
@@ -148,11 +149,17 @@ function sendJobToClient(socket, clientNum)
 function resetTimer(clientNum) {
   var cli = resultsPerClient[clientNum];
   if (!cli) return;
-  if (cli.timer) clearTimeout(cli.timer);
-  cli.timer = setTimeout(function() {
+  var timer = clientTimeouts[clientNum];
+
+  cli.hidden = false;
+  if (timer) clearTimeout(timer);
+  timer = setTimeout(function() {
+    var cli = resultsPerClient[clientNum];
+    if (!cli) return;
     cli.hidden = true;
     broadcastUpdate();
-  });
+  }, 20*1000);
+  clientTimeouts[clientNum] = timer;
 }
 
 function recordResult(clientNum, time) {
