@@ -3,7 +3,12 @@
 <head>
   <title>SkyWorker</title>
   <script type="application/javascript" src="/socket.io/socket.io.js"></script>
+	<script src="client.js"></script>
 </head>
 <body>
+	<button onclick="say('HI')">Say HI</button>
+	<button onclick="say('Unknown')">Send unknown command</button>
+	<button onclick="say('Stop')">Stop worker</button>
+	<output id="result"></output>
 </body>
 </html>
