@@ -95,12 +95,20 @@ var clientFunction = fs.readFileSync(__dirname+'/function.js', 'utf8');
 var resultsPerClient = {};
 var clientTimeouts = {};
 var mains = [];
+var startTime = Date.now();
 
 io.sockets.on('connection', function (socket) {
   var clientNum = socket.id;
   console.log('client number',clientNum,'started');
 
   socket.emit('load', { name: clientNum, clientID: clientNum, source: clientFunction, url: workerUrl });
+
+  socket.on('resetStats', function(message)
+  {
+    resultsPerClient = {};
+    startTime = Date.now();
+    broadcastUpdate();
+  });
 
   socket.on('ready', function (message) {
     if (message.role === 'main') {
@@ -188,6 +196,8 @@ function broadcastUpdate() {
     numberOfJobs: 0,
     totalTime: 0
   };
+  var currTime = Date.now();
+
   var update = Object.keys(resultsPerClient).map(function(clientNum) {
     var cli = resultsPerClient[clientNum];
     totals.numberOfJobs += cli.times.length;
@@ -198,7 +208,7 @@ function broadcastUpdate() {
   });
 
   totals.averageTime = totals.totalTime / totals.numberOfJobs / 1000;
-  totals.perSecond = totals.numberOfJobs / totals.totalTime * 1000 * 65535;
+  totals.perSecond = totals.numberOfJobs * 65535 / (currTime - startTime) * 1000;
 
   mains.forEach(function(socket) {
     socket.emit('updateDisplay',{order:update, totals:totals});
