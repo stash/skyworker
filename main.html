@@ -46,10 +46,11 @@
   <div id="hudwrapper">
     <p>Current Status:</p>
     <div id="hud">
-      <p>Total Jobs: <span id="total-jobs"></span></p>
-      <p>Average Time per Job: <span id="average"></span></p>
-      <p>Hashes Per second: <span id="per-second"></span></p>
+      <p>Total Jobs: <span id="total-jobs">0</span></p>
+      <p>Average Time per Job: <span id="average">0</span></p>
+      <p>Hashes Per second: <span id="per-second">0</span></p>
     </div>
+    <button id='reset'>Reset</button>
   </div>
   
 
@@ -69,6 +70,9 @@ function redraw() {
 
   if (!ordering.length) {
     $parent.empty();
+    $('#total-jobs').text('0');
+    $('#average').text('0');
+    $('#per-second').text('0');
     return;
   }
 
@@ -99,9 +103,6 @@ window.$ = jQuery;
 $(function() {
 
   var socket = io.connect('http://' + window.location.host);
-  socket.on('updateDisplay', function(msg) {
-    console.log('got', msg);
-  });
 
   socket.on('load', function(msg) {
     socket.emit('ready',{role:'main'});
@@ -110,8 +111,11 @@ $(function() {
   socket.on('updateDisplay', function(msg) {
     ordering = msg.order;
     totals = msg.totals;
-    console.log(msg);
     redraw();
+  });
+
+  $('#reset').click(function() {
+    socket.emit('resetStats');
   });
 });
 </script>

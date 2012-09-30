@@ -22,7 +22,6 @@ socket.on('load', function (message)
 	worker = new Worker(message.url);
 
 	worker.onmessage = function(e) {
-		console.log("job result: " + e.data.golden_ticket);
     if (e.data.golden_ticket) {
       $('golden-ticket').text('FOUND GOLDEN TICKET');
     }

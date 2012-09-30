@@ -99,7 +99,7 @@ var startTime = Date.now();
 
 io.sockets.on('connection', function (socket) {
   var clientNum = socket.id;
-  console.log('client number',clientNum,'started');
+  // console.log('client number',clientNum,'started');
 
   socket.emit('load', { name: clientNum, clientID: clientNum, source: clientFunction, url: workerUrl });
 
@@ -116,14 +116,6 @@ io.sockets.on('connection', function (socket) {
       return;
     }
 
-    resultsPerClient[clientNum] = {
-      clientNum: clientNum,
-      name: clientNum,
-      times: [],
-      avg: 0,
-      hidden: false,
-    };
-
     if (message.clientID != clientNum)
       throw new Error('something\'s wrong: client number ain\'t right');
 
@@ -131,10 +123,20 @@ io.sockets.on('connection', function (socket) {
   });
 
   socket.on('jobResult', function(message) {
-    console.log('ClientID: ', message.clientID, ' Completed job num ', message.jobNum);
+    // console.log('ClientID: ', message.clientID, ' Completed job num ', message.jobNum);
+
+    if (!resultsPerClient[clientNum])
+      resultsPerClient[clientNum] = {
+        clientNum: clientNum,
+        name: clientNum,
+        times: [],
+        avg: 0,
+        hidden: false,
+      };
 
     var time = message.result.time;
     resetTimer(clientNum);
+
     process.nextTick(recordResult.bind(null, clientNum, time));
 
     sendJobToClient(socket, message.clientID);
@@ -153,8 +155,8 @@ function sendJobToClient(socket, clientNum)
   if(!(safe_add(hashCounter, 65535) > 0xFFFFFFFF))
   {
     jobNum = ++jobCounter;
-    console.log('sending job num', jobNum, ' to ', clientNum);
-    console.log('hashCounter', hashCounter);
+    // console.log('sending job num', jobNum, ' to ', clientNum);
+    // console.log('hashCounter', hashCounter);
     socket.emit('job', {jobNum:jobNum, hashCounter:hashCounter, block: job});
     hashCounter = safe_add(hashCounter, 65535);
   }
