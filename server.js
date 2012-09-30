@@ -144,7 +144,9 @@ io.sockets.on('connection', function (socket) {
 
   socket.on('nameChange', function(message)
   {
-    resultsPerClient[clientNum].name = message.clientName;
+    var cli = resultsPerClient[message.clientNum];
+    if (!cli) return;
+    cli.name = message.clientName;
     process.nextTick(broadcastUpdate);
   });
 });
