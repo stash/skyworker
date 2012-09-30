@@ -5,12 +5,16 @@
   <script type="application/javascript" src="https://ajax.googleapis.com/ajax/libs/jquery/1.7.0/jquery.js"></script>
   <script type="application/javascript" src="/socket.io/socket.io.js"></script>
   <style type="text/css">
+    body {
+      font-family: sans-serif;
+    }
+
     .client {
       position: absolute;
       font-size: 24px;
       height: 32px;
-      width: 256px;
-      background: #888888;
+      width: 400px;
+      background: #dddddd;
       border: 1px solid black;
       font-family: Inconsolata,monospace;
       text-align: center;
@@ -18,20 +22,22 @@
     }
 
     #hudwrapper {
-      float:left;
-      width:25%;
+      float:right;
+      width:33%;
     }
 
     #leaderboardwrapper{
       float:left;
-      width:25%;
+      width:66%;
     }
   </style>
 </head>
 <body>
 
+  <h1>Go To: http://stash.skyworker.jit.su/</h1>
+
   <div id="leaderboardwrapper">
-    <p>Rank:</p>
+    <h3>LEADERS</h3>
 
     <div id="leaderboard">
     </div>
@@ -60,6 +66,12 @@ function redraw() {
   var $parent = $('#leaderboard');
   var offset = $parent.offset();
   var curY = 0;
+
+  if (!ordering.length) {
+    $parent.empty();
+    return;
+  }
+
   ordering.forEach(function(cli) {
     var $div = $('#client-'+cli.clientNum);
 
@@ -71,7 +83,7 @@ function redraw() {
     }
 
     if (cli.hidden) {
-      $div.fadeOut('fast',function() { $div.remove() });
+      $div.fadeOut(100, function() { $div.remove() });
     } else {
       $div.animate({ top: offset.top + curY }, 333, 'swing');
       curY += incr;

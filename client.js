@@ -17,10 +17,15 @@ socket.on('load', function (message)
 	// blob = new Blob(["onmessage = function(workUnit) { postMessage(function(data) { \n" + message.source + "\n }(workUnit.data)); } "]);
 	// Obtain a blob URL reference to our worker 'file'.
 	// blobURL = windowURL.createObjectURL(blob);
+  
+  $('#worker-script').text('Loaded script: '+message.url);
 	worker = new Worker(message.url);
 
 	worker.onmessage = function(e) {
 		console.log("job result: " + e.data.golden_ticket);
+    if (e.data.golden_ticket) {
+      $('golden-ticket').text('FOUND GOLDEN TICKET');
+    }
 		socket.emit('jobResult', { clientID: clientID, jobNum: jobNumber, result: e.data });
 	};
 
