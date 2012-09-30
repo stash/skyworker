@@ -79,6 +79,11 @@ function redraw() {
   ordering.forEach(function(cli) {
     var $div = $('#client-'+cli.clientNum);
 
+    if (cli.hidden) {
+      if ($div.length) $div.remove();
+      return;
+    }
+
     if (!$div.length) {
       $div = $('<div id="client-'+cli.clientNum+'" class="client">'+cli.name+'</client>');
       $parent.append($div);
@@ -86,12 +91,8 @@ function redraw() {
       $div.text(cli.name);
     }
 
-    if (cli.hidden) {
-      $div.fadeOut(100, function() { $div.remove() });
-    } else {
-      $div.animate({ top: offset.top + curY }, 333, 'swing');
-      curY += incr;
-    }
+    $div.animate({ top: offset.top + curY }, 333, 'swing');
+    curY += incr;
   });
 
   $('#total-jobs').text(totals.numberOfJobs);
