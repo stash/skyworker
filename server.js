@@ -93,12 +93,14 @@ job.data = job.data.slice(16);
 var clientFunction = fs.readFileSync(__dirname+'/function.js', 'utf8');
 
 var resultsPerClient = {};
+var clientNames = {};
 var clientTimeouts = {};
 var mains = [];
 var startTime = Date.now();
 
 io.sockets.on('connection', function (socket) {
   var clientNum = socket.id;
+  clientNames[clientNum] = clientNum;
   // console.log('client number',clientNum,'started');
 
   socket.emit('load', { name: clientNum, clientID: clientNum, source: clientFunction, url: workerUrl });
@@ -144,9 +146,7 @@ io.sockets.on('connection', function (socket) {
 
   socket.on('nameChange', function(message)
   {
-    var cli = resultsPerClient[clientNum];
-    if (!cli) return;
-    cli.name = message.clientName;
+    clientNames[clientNum] = message.clientName;
     process.nextTick(broadcastUpdate);
   });
 });
@@ -191,6 +191,7 @@ function recordResult(clientNum, time) {
   var totalTime = cli.times.reduce(function(a,b) { return a + b; }, 0);
   cli.averageTime = totalTime/numberOfJobs;
   cli.totalTime = totalTime;
+  cli.name = clientNames[clientNum];
 
   broadcastUpdate();
 }
